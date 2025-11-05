@@ -195,6 +195,14 @@ export default {
   created() {
     this.loadData();
   },
+  created() {
+    this.loadData();
+    this.checkIsMobile();
+    window.addEventListener("resize", this.checkIsMobile);
+  },
+  beforeDestroy() {
+    window.removeEventListener("resize", this.checkIsMobile);
+  },
   methods: {
     loadData() {
       this.loadStats();
