@@ -2,12 +2,13 @@
   <el-dialog
     title="编辑错题"
     :visible.sync="visible"
-    width="800px"
+    :width="dialogWidth"
     :close-on-click-modal="false"
     :modal="false"
     :append-to-body="true"
     :lock-scroll="false"
     custom-class="question-edit-dialog"
+    :class="{'mobile-dialog': isMobile}"
     @close="handleCancel"
     @opened="handleDialogOpened"
     @closed="handleDialogClosed"
@@ -16,7 +17,8 @@
       ref="form"
       :model="form"
       :rules="rules"
-      label-width="100px"
+      :label-width="labelWidth"
+      class="edit-form"
     >
       <el-form-item label="题目内容" prop="questionContent">
         <el-input
@@ -138,6 +140,7 @@ export default {
     return {
       visible: false,
       submitLoading: false,
+      isMobile: false,
       form: {
         questionId: null,
         questionContent: "",
@@ -157,6 +160,21 @@ export default {
       defaultTags: ["语文", "数学", "英语", "物理", "化学", "生物", "政治", "历史", "地理"]
     };
   },
+  computed: {
+    dialogWidth() {
+      return this.isMobile ? '95%' : '800px';
+    },
+    labelWidth() {
+      return this.isMobile ? '90px' : '100px';
+    }
+  },
+  mounted() {
+    this.checkIsMobile();
+    window.addEventListener('resize', this.checkIsMobile);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.checkIsMobile);
+  },
   watch: {
     questionId(newVal) {
       if (newVal) {
@@ -170,7 +188,11 @@ export default {
     }
   },
   methods: {
+    checkIsMobile() {
+      this.isMobile = window.innerWidth <= 767;
+    },
     open() {
+      this.checkIsMobile();
       this.visible = true;
     },
     close() {
@@ -299,6 +321,13 @@ export default {
 <style scoped>
 .dialog-footer {
   text-align: right;
+  padding: 10px 0;
+}
+
+.edit-form {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>
 
@@ -316,5 +345,103 @@ export default {
 /* 确保详情弹窗的遮罩在编辑对话框之上 */
 .question-detail-overlay {
   z-index: 2000 !important;
+}
+
+/* 移动端对话框样式 */
+.question-edit-dialog.mobile-dialog {
+  max-width: 95% !important;
+  width: 95% !important;
+  margin: 0 auto !important;
+  top: 5vh !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-dialog__header {
+  padding: 16px 16px 12px 16px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-dialog__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-dialog__body {
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-dialog__footer {
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  z-index: 10;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-form-item {
+  margin-bottom: 16px;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-form-item__label {
+  font-size: 13px;
+  padding-bottom: 6px;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-input__inner,
+.question-edit-dialog.mobile-dialog >>> .el-textarea__inner {
+  font-size: 14px;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-button {
+  font-size: 13px;
+  padding: 8px 16px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-button--mini {
+  font-size: 12px;
+  padding: 6px 12px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-select {
+  width: 100%;
+}
+
+.question-edit-dialog.mobile-dialog >>> .el-textarea {
+  width: 100%;
+}
+
+/* 桌面端样式优化 */
+.question-edit-dialog:not(.mobile-dialog) >>> .el-dialog__body {
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+}
+
+/* 确保移动端表单可以滚动 */
+@media (max-width: 767px) {
+  .question-edit-dialog >>> .el-dialog__body {
+    max-height: calc(90vh - 120px);
+  }
 }
 </style>

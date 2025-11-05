@@ -15,12 +15,12 @@
     <div class="app-container">
     <el-card class="welcome-card">
       <div slot="header" class="clearfix">
-        <span class="welcome-title">欢迎使用错题征服者！！</span>
+        <span class="welcome-title">欢迎使用错题管理系统</span>
       </div>
 
       <div class="welcome-content">
         <p class="welcome-desc">
-          为中小学生设计的智能错题管理系统，帮助你们高效管理错题、提升学习效率。
+          专为中小学生设计的智能错题管理系统，帮助用户高效管理错题、提升学习效率。
         </p>
 
         <!-- 统计卡片 -->

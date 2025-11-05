@@ -55,17 +55,20 @@
             <el-carousel
               :interval="0"
               :arrow="imageArray.length > 1 ? 'hover' : 'never'"
-              height="400px"
+              :height="carouselHeight"
               indicator-position="outside"
             >
               <el-carousel-item v-for="(img, idx) in imageArray" :key="idx">
-                <el-image
-                  :src="getImageUrl(img)"
-                  fit="contain"
-                  class="detail-image"
-                  :preview-src-list="previewList"
-                  :initial-index="idx"
-                />
+                <div class="image-wrapper">
+                  <el-image
+                    :src="getImageUrl(img)"
+                    fit="contain"
+                    class="detail-image"
+                    :preview-src-list="previewList"
+                    :initial-index="idx"
+                    :lazy="true"
+                  />
+                </div>
               </el-carousel-item>
             </el-carousel>
           </div>
@@ -92,17 +95,20 @@
             <el-carousel
               :interval="0"
               :arrow="answerImageArray.length > 1 ? 'hover' : 'never'"
-              height="400px"
+              :height="carouselHeight"
               indicator-position="outside"
             >
               <el-carousel-item v-for="(img, idx) in answerImageArray" :key="idx">
-                <el-image
-                  :src="getImageUrl(img)"
-                  fit="contain"
-                  class="detail-image"
-                  :preview-src-list="answerPreviewList"
-                  :initial-index="idx"
-                />
+                <div class="image-wrapper">
+                  <el-image
+                    :src="getImageUrl(img)"
+                    fit="contain"
+                    class="detail-image"
+                    :preview-src-list="answerPreviewList"
+                    :initial-index="idx"
+                    :lazy="true"
+                  />
+                </div>
               </el-carousel-item>
             </el-carousel>
           </div>
@@ -155,8 +161,16 @@ export default {
   },
   data() {
     return {
-      editDialogVisible: false
+      editDialogVisible: false,
+      carouselHeight: '400px'
     };
+  },
+  mounted() {
+    this.updateCarouselHeight();
+    window.addEventListener('resize', this.updateCarouselHeight);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.updateCarouselHeight);
   },
   computed: {
     hasImages() {
@@ -185,6 +199,17 @@ export default {
     }
   },
   methods: {
+    updateCarouselHeight() {
+      // 移动端使用自适应高度，桌面端使用固定高度
+      if (window.innerWidth <= 767) {
+        // 移动端：使用视口高度的50%，但最小200px，最大500px
+        const viewportHeight = window.innerHeight;
+        const calculatedHeight = Math.min(Math.max(viewportHeight * 0.5, 200), 500);
+        this.carouselHeight = `${Math.floor(calculatedHeight)}px`;
+      } else {
+        this.carouselHeight = '400px';
+      }
+    },
     handleClose() {
       this.$emit('close');
     },
@@ -251,6 +276,8 @@ export default {
   z-index: 2000;
   padding: 20px;
   animation: fadeIn 0.2s ease-out;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes fadeIn {
@@ -291,6 +318,8 @@ export default {
   padding: 24px;
   color: white;
   position: relative;
+  flex-shrink: 0;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 24px);
 }
 
 .header-info {
@@ -321,11 +350,35 @@ export default {
 
 .header-actions {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 16px;
+  right: 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  z-index: 10;
+}
+
+.header-actions >>> .el-button {
+  padding: 8px 12px;
+  font-size: 13px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-actions >>> .el-button--small {
+  padding: 6px 12px;
+  font-size: 12px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.header-actions >>> .el-button--circle {
+  width: 44px;
+  height: 44px;
+  padding: 0;
 }
 
 .close-btn {
@@ -342,6 +395,8 @@ export default {
   padding: 32px;
   overflow-y: auto;
   flex: 1;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px) + 20px);
+  -webkit-overflow-scrolling: touch;
 }
 
 .detail-section {
@@ -350,6 +405,7 @@ export default {
 
 .detail-section:last-child {
   margin-bottom: 0;
+  padding-bottom: 20px;
 }
 
 .section-header {
@@ -415,10 +471,42 @@ export default {
   background: #1a1a1a;
 }
 
+.image-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
 .detail-image {
   width: 100%;
-  height: 400px;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
   display: block;
+  object-fit: contain;
+}
+
+.detail-image >>> .el-image__inner {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+}
+
+.image-viewer >>> .el-carousel__container {
+  height: auto !important;
+  min-height: 200px;
+}
+
+.image-viewer >>> .el-carousel__item {
+  height: auto !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tags-container {
@@ -438,32 +526,113 @@ export default {
 @media (max-width: 767px) {
   .question-detail-overlay {
     padding: 0;
+    align-items: flex-start;
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   .question-detail-dialog {
     max-height: 100vh;
     border-radius: 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   .detail-header {
-    padding: 20px;
+    padding: 60px 16px 16px 16px;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 60px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-info {
+    margin-bottom: 8px;
   }
 
   .header-title {
-    font-size: 20px;
+    font-size: 18px;
+    margin-bottom: 0;
+  }
+
+  .header-actions {
+    top: 12px;
+    right: 12px;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .header-actions >>> .el-button {
+    padding: 8px 12px;
+    font-size: 12px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .header-actions >>> .el-button--small {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .header-actions >>> .el-button--circle {
+    width: 44px;
+    height: 44px;
+    padding: 0;
   }
 
   .detail-content {
-    padding: 20px;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px) + 40px);
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .detail-section {
+    margin-bottom: 24px;
+  }
+
+  .detail-section:last-child {
+    padding-bottom: 40px;
+  }
+
+  .section-header {
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 16px;
   }
 
   .section-content {
-    padding: 16px;
+    padding: 14px;
     font-size: 14px;
   }
 
-  .detail-image {
-    height: 300px;
+  .image-viewer {
+    border-radius: 8px;
+  }
+
+  .image-wrapper {
+    min-height: 150px;
+    padding: 8px;
+  }
+
+  .image-viewer >>> .el-carousel__container {
+    min-height: 150px;
+  }
+
+  .tags-container {
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .detail-tag {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 }
 </style>
