@@ -214,7 +214,7 @@
             </div>
           </div>
 
-          <!-- 右侧：AI答疑区域（桌面端） -->
+          <!-- 右侧：AI答疑区域 -->
           <div class="ai-answer-section desktop-ai">
             <div class="ai-header">
               <div class="section-header">
@@ -642,7 +642,6 @@ export default {
 
         if (response.success) {
           this.aiAnswer = response.answer;
-          // 重置对话历史，只包含第一条AI回答
           this.conversationHistory = [
             { role: "assistant", content: response.answer },
           ];

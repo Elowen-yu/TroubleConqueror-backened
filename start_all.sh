@@ -30,38 +30,36 @@ else
   echo "MariaDB 已在运行"
 fi
 
-# 1. 根目录 python http server
+# 1. 根目录 Python HTTP Server
 echo ">>> 启动 Python http server..."
 python -m http.server &
 pids+=($!)
 
 # 2. ruoyi-admin
 echo ">>> 启动 RuoYi-Admin..."
-cd ruoyi-admin
+cd ruoyi-admin || exit 1
 mvn spring-boot:run &
 pids+=($!)
 cd ..
 
 # 3. OCR 服务
 echo ">>> 启动 OCR 服务..."
-cd ocr
+cd ocr || exit 1
 source venv/bin/activate
 uvicorn xfyun:app --host 0.0.0.0 --port 9000 &
 pids+=($!)
-cd ..
 
-# 4. ruoyi-ui
-echo ">>> 启动 RuoYi-UI..."
-cd ruoyi-ui
-npm run dev &
+# 4. AI（DeepSeek）服务
+echo ">>> 启动 AI 服务 (DeepSeek)..."
+uvicorn deepseek:app --host 0.0.0.0 --port 9001 --reload &
 pids+=($!)
+
 cd ..
 
-# 5. AI
-echo ">>> 启动 AI 服务..."
-cd ocr
-source venv/bin/activate
-uvicorn uvicorn deepseek:app --host 0.0.0.0 --port 9001 --reload
+# 5. ruoyi-ui
+echo ">>> 启动 RuoYi-UI..."
+cd ruoyi-ui || exit 1
+npm run dev &
 pids+=($!)
 cd ..
 
