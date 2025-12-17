@@ -184,7 +184,12 @@
           </div>
 
           <div class="chart-wrapper" v-loading="!pieChart">
-            <div ref="pieContainer" id="tagsPieChart"></div>
+            <!-- Ensure the pie chart container has an explicit height so ECharts can initialize correctly -->
+            <div
+              ref="pieContainer"
+              id="tagsPieChart"
+              style="width: 100%; height: 260px"
+            ></div>
           </div>
         </el-card>
       </el-col>
@@ -366,15 +371,26 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 编辑对话框 -->
+    <question-edit-dialog
+      ref="editDialog"
+      :question-id="editingQuestionId"
+      @success="refresh"
+    />
   </div>
 </template>
 
 <script>
 import * as echarts from "echarts";
 import { listQuestion } from "@/api/trouble/question";
+import QuestionEditDialog from "@/views/trouble/question/components/QuestionEditDialog.vue";
 
 export default {
   name: "TroubleTags",
+  components: {
+    QuestionEditDialog,
+  },
   data() {
     return {
       loading: false,
@@ -390,6 +406,7 @@ export default {
       compact: false,
       pieChart: null,
       hoveredTag: null,
+      editingQuestionId: null,
     };
   },
   computed: {
@@ -729,9 +746,11 @@ export default {
     },
 
     editQuestion(row) {
-      this.$router.push({
-        path: "/trouble/question",
-        query: { editId: row.questionId },
+      this.editingQuestionId = row.questionId;
+      this.$nextTick(() => {
+        if (this.$refs.editDialog) {
+          this.$refs.editDialog.open();
+        }
       });
     },
 

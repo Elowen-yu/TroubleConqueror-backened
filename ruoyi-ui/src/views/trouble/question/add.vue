@@ -454,43 +454,57 @@ export default {
     },
 
     async handleOCR(target) {
+      // 创建一个隐藏的文件输入框，用于选择图片
       const fileInput = document.createElement("input");
-      fileInput.type = "file";
-      fileInput.accept = "image/*";
-      fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+      fileInput.type = "file"; // 类型为文件
+      fileInput.accept = "image/*"; // 仅接受图片文件
 
+      // 当选择文件后触发
+      fileInput.onchange = async (e) => {
+        const file = e.target.files[0]; // 获取用户选择的第一张图片
+        if (!file) return; // 如果没有选择文件，直接返回
+
+        // 创建 FormData 对象，用于发送文件到后端
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", file); // 将图片添加到 formData 中，key 为 "file"
 
         try {
+          // 获取当前网页的主机名
           const host = window.location.hostname;
-          const port = 9000;
+          const port = 9000; // OCR 服务端口号
 
+          // 使用 fetch 发送 POST 请求，将图片上传到 OCR 服务
           const res = await fetch(`http://${host}:${port}/ocr/upload`, {
             method: "POST",
-            body: formData,
+            body: formData, // 请求体为 formData
           });
 
+          // 如果响应状态不是 200-299，抛出错误
           if (!res.ok) {
             throw new Error(`HTTP错误 ${res.status}`);
           }
 
+          // 解析返回的 JSON 数据
           const data = await res.json();
           if (!data.text) {
+            // 如果 OCR 返回内容为空，抛出错误
             throw new Error("OCR返回内容为空");
           }
 
+          // 根据 target 参数，将识别的文字填入对应的表单字段
           if (target === "question") {
             this.form.questionContent = data.text;
           } else if (target === "answer") {
             this.form.answerContent = data.text;
           }
 
+          // 重新渲染公式
           this.renderMath();
+
+          // 提示 OCR 成功
           this.$message.success("OCR识别成功");
         } catch (err) {
+          // 捕获错误并提示
           this.$message.error("OCR识别失败");
           if (process.env.NODE_ENV === "development") {
             console.error("OCR识别错误:", err);
@@ -498,6 +512,7 @@ export default {
         }
       };
 
+      // 自动触发文件选择对话框
       fileInput.click();
     },
 

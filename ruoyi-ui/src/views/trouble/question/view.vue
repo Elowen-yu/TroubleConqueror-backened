@@ -458,6 +458,17 @@ export default {
     ) {
       this.queryParams.proficiency = parseInt(this.$route.query.proficiency);
     }
+
+    // 处理标签筛选参数
+    if (this.$route.query.tags) {
+      const tagsParam = this.$route.query.tags;
+      this.selectedTags = Array.isArray(tagsParam)
+        ? tagsParam
+        : tagsParam
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean);
+    }
     // 优先处理路由里明确的区间：优先 dateStart/dateEnd (YYYY-MM-DD)，其次 weekStart/weekEnd（ISO），最后单日 date 或 today
     if (this.$route.query.dateStart && this.$route.query.dateEnd) {
       // dateStart/dateEnd 格式为本地 YYYY-MM-DD，构造当天的起止时间
@@ -531,6 +542,18 @@ export default {
     this.$watch(
       () => this.$route.query,
       (newQ) => {
+        // 处理标签筛选参数
+        if (newQ.tags) {
+          const tagsParam = newQ.tags;
+          this.selectedTags = Array.isArray(tagsParam)
+            ? tagsParam
+            : tagsParam
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean);
+        } else {
+          this.selectedTags = [];
+        }
         // 优先使用 weekStart/weekEnd（如果存在），避免 date 字符串在不同时区解释不同
         // 优先处理路由传入的 dateStart/dateEnd（格式 YYYY-MM-DD），其次处理 weekStart/weekEnd，最后处理单日 date 或 today
         if (newQ.dateStart && newQ.dateEnd) {
